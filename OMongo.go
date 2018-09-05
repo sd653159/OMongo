@@ -211,17 +211,36 @@ func UpdateList(col *mgo.Collection, cdi interface{}, data interface{}, distinct
 
 //查询数据
 func Find(col *mgo.Collection, cdi interface{}, options interface{}) interface{}{
+	var err error
 	//直接支持id筛选
+	switch cdi.(type) {
+	case string:
+		var tCdi = make(O.M)
+		err = json.Unmarshal([]byte(cdi.(string)), &tCdi)
+		cdi = tCdi
+		if err != nil {
+			Oprintf("%v", err)
+		}
+	}
+
 	if cdi.(O.M)["_id"] != nil {
 		cdi.(O.M)["_id"] = bson.ObjectIdHex(cdi.(O.M)["_id"].(string))
 	}
 
 	var result  []interface{}
-	col.Find(cdi).All(&result)
-	Oprintf("%v",result)
 
-	itemList := strings.Split(options.(string),".")
-	Oprintf("%v",itemList)
+	switch cdi.(type) {
+	case O.M:
+		col.Find(cdi).All(&result)
+	case string:
+		err = json.Unmarshal([]byte(cdi.(string)), &cdi)
+		if err != nil {
+			Oprintf("%v", err)
+		}
+		col.Find(cdi).All(&result)
+	}
+
+	itemList := strings.Split(options,".")
 	var oData = result[0]
 	for _,v := range itemList{
 		oData = oData.(bson.M)[v]
@@ -229,5 +248,5 @@ func Find(col *mgo.Collection, cdi interface{}, options interface{}) interface{}
 	}
 
 
-	return result
+	return oData
 }
