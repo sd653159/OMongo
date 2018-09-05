@@ -7,10 +7,9 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 	"runtime"
-	"./O"
+	"github.com/sd653159/OMongo/O"
 	"strings"
-	"time"
-)
+	)
 
 var debug = true
 //调试模式开关
